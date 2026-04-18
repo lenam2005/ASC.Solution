@@ -1,0 +1,126 @@
+﻿@model ASC.Web.Areas.Accounts.Models.ServiceEngineerViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> _userManager
+
+@{
+    Layout = "_SecureLayout";
+}
+
+<div class="row">
+
+    <!-- ===== LIST USER ===== -->
+    <div class="col s12">
+        <h5>Service Engineers</h5>
+
+        @if (Model.ServiceEngineers != null && Model.ServiceEngineers.Any())
+        {
+            <table class="highlight centered" id="tblServiceEngineers">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Is Active</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var user in Model.ServiceEngineers)
+                    {
+                        var claims = await _userManager.GetClaimsAsync(user);
+                        var isActive = claims.FirstOrDefault(x => x.Type == "IsActive")?.Value == "True";
+
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>@user.UserName</td>
+                            <td>
+                                <img src="@(isActive ? "/images/green_tick.png" : "/images/red_cross.png")" width="20"/>
+                            </td>
+                            <td>
+                                <button class="btn-small edit-btn">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No Service Engineers</p>
+        }
+    </div>
+
+    <!-- ===== FORM ===== -->
+    <div class="col s12" style="margin-top:30px;">
+        <h5>Service Engineer Details</h5>
+
+        <form asp-action="ServiceEngineers" method="post" id="formUser">
+
+            <input type="hidden" asp-for="Registration.IsEdit" id="IsEdit"/>
+
+            <div class="input-field">
+                <input asp-for="Registration.Email" id="Input_Email"/>
+                <label>Email</label>
+            </div>
+
+            <div class="input-field">
+                <input asp-for="Registration.UserName" id="Input_UserName"/>
+                <label>User Name</label>
+            </div>
+
+            <div class="input-field">
+                <input asp-for="Registration.Password" type="password"/>
+                <label>Password</label>
+            </div>
+
+            <div class="input-field">
+                <input asp-for="Registration.ConfirmPassword" type="password"/>
+                <label>Confirm Password</label>
+            </div>
+
+            <div>
+                <label>
+                    <input asp-for="Registration.IsActive" type="checkbox" id="chkActive"/>
+                    <span>Is Active</span>
+                </label>
+            </div>
+
+            <br />
+
+            <button type="submit" class="btn" id="btnSubmit">Create</button>
+            <button type="button" class="btn red" id="btnReset">Reset</button>
+
+        </form>
+    </div>
+
+</div>
+
+@section Scripts{
+<script>
+    // ===== RESET =====
+    document.getElementById("btnReset").addEventListener("click", function () {
+        document.getElementById("formUser").reset();
+        document.getElementById("IsEdit").value = "false";
+        document.getElementById("btnSubmit").innerText = "Create";
+    });
+
+    // ===== EDIT =====
+    document.querySelectorAll(".edit-btn").forEach((btn, index) => {
+        btn.addEventListener("click", function () {
+
+            var row = btn.closest("tr");
+
+            var email = row.children[0].innerText;
+            var username = row.children[1].innerText;
+            var isActive = row.children[2].innerText.includes("green");
+
+            document.getElementById("Input_Email").value = email;
+            document.getElementById("Input_UserName").value = username;
+            document.getElementById("chkActive").checked = isActive;
+
+            document.getElementById("IsEdit").value = "true";
+            document.getElementById("btnSubmit").innerText = "Update";
+        });
+    });
+</script>
+}

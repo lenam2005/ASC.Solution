@@ -3,7 +3,11 @@ using ASC.Web.Configuration;
 using ASC.Web.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.Extensions.Configuration;
+using AutoMapper;
+using ASC.Business.Interfaces;
+using ASC.Business;
 
 namespace ASC.Web.Services
 {
@@ -27,13 +31,13 @@ namespace ASC.Web.Services
             return services;
         }
 
-        // Đăng ký Identity, services, MVC
-        public static IServiceCollection AddMyDependencyGroup(this IServiceCollection services)
+        // Đăng ký Identity + Google + Services
+        public static IServiceCollection AddMyDependencyGroup(this IServiceCollection services, IConfiguration config)
         {
             // DbContext inject cho repository nếu cần
             services.AddScoped<DbContext, ApplicationDbContext>();
 
-            // Identity có Role
+            // Identity
             services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
@@ -41,6 +45,15 @@ namespace ASC.Web.Services
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+            // Google Auth
+            services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = config["Google:Identity:ClientId"];
+                    options.ClientSecret = config["Google:Identity:ClientSecret"];
+                    options.SignInScheme = IdentityConstants.ExternalScheme;
+                });
 
             // Application services
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -50,11 +63,15 @@ namespace ASC.Web.Services
             services.AddScoped<IIdentitySeed, IdentitySeed>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            //Adđ Cache ,Session
+            // Add MasterDataOperations
+            services.AddScoped<IMasterDataOperations, MasterDataOperations>();
+
+            // AutoMapper
+            services.AddAutoMapper(typeof(ApplicationDbContext));
+
+            // Session + Cache
             services.AddSession();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            services.AddDistributedMemoryCache(); //
             services.AddSingleton<INavigationCacheOperations, NavigationCacheOperations>();
 
             // MVC + Razor Pages
