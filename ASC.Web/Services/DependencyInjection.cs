@@ -76,7 +76,17 @@ namespace ASC.Web.Services
 
             // MVC + Razor Pages
             services.AddRazorPages();
-            services.AddControllersWithViews();
+            //services.AddControllersWithViews();
+            // MVC + Razor Pages
+            services.AddRazorPages();
+
+            services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                });
+
+            services.AddDatabaseDeveloperPageExceptionFilter();
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             return services;

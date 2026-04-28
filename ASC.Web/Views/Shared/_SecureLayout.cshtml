@@ -113,11 +113,15 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#ancrLogout').click(function () {
+            console.log("SecureLayout script loaded");
+
+            $('#ancrLogout').on('click', function (e) {
+                e.preventDefault();
                 $('#logout_form').submit();
             });
 
             $('.sidenav').sidenav();
+            $('.collapsible').collapsible();
 
             $(document).on('click', '.menu-toggle', function (e) {
                 e.preventDefault();
@@ -125,7 +129,8 @@
             });
         });
     </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 }
-@RenderSection("Scripts", required: false)
 
 

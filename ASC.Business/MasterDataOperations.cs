@@ -74,16 +74,45 @@ namespace ASC.Business
             }
         }
 
+        //public async Task<bool> UpdateMasterKeyAsync(string originalPartitionKey, MasterDataKey key)
+        //{
+        //    using (_unitOfWork)
+        //    {
+        //        var masterKey = await _unitOfWork.Repository<MasterDataKey>()
+        //            .FindAsync(originalPartitionKey, key.RowKey);
+
+        //        masterKey.IsActive = key.IsActive;
+        //        masterKey.IsDeleted = key.IsDeleted;
+        //        masterKey.Name = key.Name;
+
+        //        _unitOfWork.Repository<MasterDataKey>().Update(masterKey);
+        //        _unitOfWork.CommitTransaction();
+
+        //        return true;
+        //    }
+        //}
+
         public async Task<bool> UpdateMasterKeyAsync(string originalPartitionKey, MasterDataKey key)
         {
             using (_unitOfWork)
             {
-                var masterKey = await _unitOfWork.Repository<MasterDataKey>()
+                var masterKey = await _unitOfWork
+                    .Repository<MasterDataKey>()
                     .FindAsync(originalPartitionKey, key.RowKey);
+
+                if (masterKey == null)
+                {
+                    Console.WriteLine("Không tìm thấy MasterKey để update.");
+                    Console.WriteLine("originalPartitionKey = " + originalPartitionKey);
+                    Console.WriteLine("key.RowKey = " + key.RowKey);
+                    return false;
+                }
 
                 masterKey.IsActive = key.IsActive;
                 masterKey.IsDeleted = key.IsDeleted;
                 masterKey.Name = key.Name;
+                masterKey.UpdatedBy = key.UpdatedBy;
+                masterKey.UpdatedDate = key.UpdatedDate;
 
                 _unitOfWork.Repository<MasterDataKey>().Update(masterKey);
                 _unitOfWork.CommitTransaction();
