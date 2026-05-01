@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddConfig(builder.Configuration);
 builder.Services.AddMyDependencyGroup(builder.Configuration);
+builder.Services.AddScoped<IMasterDataCacheOperations, MasterDataCacheOperations>();
 builder.Services.AddTransient<
     Microsoft.AspNetCore.Identity.UI.Services.IEmailSender,
     ASC.Web.Services.EmailSender>();
@@ -30,13 +31,36 @@ using (var scope = app.Services.CreateScope())
         scope.ServiceProvider.GetRequiredService<IOptions<ApplicationSettings>>()
     );
 }
+
+// RESET PASSWORD ENGINEER - CHẠY 1 LẦN RỒI XÓA ĐOẠN NÀY
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+    var user = await userManager.FindByEmailAsync("2324802010299@student.tdmu.edu.vn");
+
+    if (user != null)
+    {
+        await userManager.SetLockoutEndDateAsync(user, null);
+        await userManager.ResetAccessFailedCountAsync(user);
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        await userManager.ResetPasswordAsync(user, token, "P@ssw0rd");
+    }
+}
+
 //CreateNavigationCache
 using (var scope = app.Services.CreateScope())
 {
     var navigationCacheOperations = scope.ServiceProvider.GetRequiredService<INavigationCacheOperations>();
     await navigationCacheOperations.CreateNavigationCacheAsync();
 }
-
+//CreateMasterDataCache
+using (var scope = app.Services.CreateScope())
+{
+    var masterDataCacheOperations = scope.ServiceProvider.GetRequiredService<IMasterDataCacheOperations>();
+    await masterDataCacheOperations.CreateMasterDataCacheAsync();
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

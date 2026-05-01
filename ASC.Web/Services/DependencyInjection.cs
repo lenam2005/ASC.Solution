@@ -54,6 +54,11 @@ namespace ASC.Web.Services
                     options.ClientSecret = config["Google:Identity:ClientSecret"];
                     options.SignInScheme = IdentityConstants.ExternalScheme;
                 });
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = config.GetSection("CacheSettings:CacheConnectionString").Value;
+                options.InstanceName = config.GetSection("CacheSettings:CacheInstance").Value;
+            });
 
             // Application services
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -65,6 +70,7 @@ namespace ASC.Web.Services
 
             // Add MasterDataOperations
             services.AddScoped<IMasterDataOperations, MasterDataOperations>();
+            services.AddScoped<IServiceRequestOperations, ServiceRequestOperations>();
 
             // AutoMapper
             services.AddAutoMapper(typeof(ApplicationDbContext));
